@@ -4,50 +4,53 @@ const wrapAsync=require("../utils/wrapAsync.js");
 const {listingSchema }=require("../schema.js");
 const ExpressError=require("../utils/ExpressError.js");
 const Listing=require("../models/listing.js");
+const {loggedin,isOwner,validateListing}=require("../middleware.js")
 
-//Middleware for validating the listing data using joi
-const validateListing=(req,res,next)=>{
-    let result=listingSchema.validate(req.body);
-
-    if(result.error){
-        let msg=result.error.details.map((el)=>el.message).join(",");
-        next(new ExpressError(400,msg)); 
-    } else {
-        next();
-    }
-};
-
+//Index route
 router.get("/", async (req,res)=>{
     let alllisting=await Listing.find({});
     res.render("listings/index.ejs",{alllisting});
 });
 
-
-router.get("/new", (req,res)=>{
+//New route 
+router.get("/new",loggedin, (req,res)=>{
+    console.log(req.user);
+    if(!req.isAuthenticated()){
+        req.flash("error","You have not logged in!");
+       return  res.redirect("/login");
+    }
     res.render("listings/new.ejs");
 })
 
 //Show Route
 router.get("/:id", wrapAsync(async (req,res)=>{
     let {id}=req.params;
-    const list= await Listing.findById(id).populate("reviews");
+    // const list= await Listing.findById(id).populate("reviews").populate("owner");
+    const list= await Listing.findById(id).populate({
+        path:"reviews",
+        populate:{
+            path:"author",
+        },
+    }).populate("owner");
     if(!list){
         req.flash("error", "Listings you requested does not exits");
        return  res.redirect("/listings");
     }
+    // console.log(list);
     res.render("listings/show.ejs",{list});
 }))
 
 //New page for creating new listing
-router.post("/",validateListing, wrapAsync(async (req,res,next)=>{
+router.post("/",validateListing,loggedin, wrapAsync(async (req,res,next)=>{
     let {listing} =req.body;
     const newlis=new Listing(req.body.listing);
+    newlis.owner=req.user._id;
     await newlis.save()
     req.flash("success","New Listing is Created Sucessful!");
     res.redirect("/listings");
 }))
 //Edit and Update Route
-router.get("/:id/edit", wrapAsync(async (req,res)=>{
+router.get("/:id/edit",loggedin,isOwner, wrapAsync(async (req,res)=>{
     let {id}=req.params;
     let list=await Listing.findById(id);
     if(!list){
@@ -57,14 +60,13 @@ router.get("/:id/edit", wrapAsync(async (req,res)=>{
     res.render("listings/edit.ejs",{list});
 }))
 //Update Route
-router.put("/:id", validateListing, wrapAsync(async(req,res)=>{
-    let {id}=req.params;
+router.put("/:id",loggedin,isOwner, validateListing, wrapAsync(async(req,res)=>{
     await Listing.findByIdAndUpdate(id,{...req.body.listing});
     req.flash("success"," Listing is Updated!");
-    res.redirect("/listings");
+    res.redirect(`/listings/${id}`);
 }))
 //Delete Route
-router.delete("/:id", wrapAsync(async(req,res)=>{
+router.delete("/:id",loggedin,isOwner, wrapAsync(async(req,res)=>{
     let {id}=req.params;
     let deleted=await Listing.findByIdAndDelete(id);
     console.log(deleted);
