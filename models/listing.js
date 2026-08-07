@@ -8,9 +8,8 @@ const listingSchema=new Schema({
     },
     description:String,
     image :{
-        type:String,
-        default : "https://www.magnific.com/free-photos-vectors/sunset",
-        set: (v) => v == "" ? "https://www.magnific.com/free-photos-vectors/sunset" : v,
+        url:String,
+        filename:String,
     },
     price: Number,
 
@@ -26,6 +25,17 @@ const listingSchema=new Schema({
             type:Schema.Types.ObjectId,
             ref:"User",
         },
+    geometry:{
+        type:{
+            type:String,
+            enum: ['Point'],
+            required:true,
+        },
+        coordinates:{
+            type:[Number],
+            required:true,
+        }
+    }
 });
 listingSchema.post("findOneAndDelete",async(listing)=>{
     if(listing){

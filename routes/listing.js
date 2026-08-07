@@ -7,18 +7,14 @@ const Listing=require("../models/listing.js");
 const {loggedin,isOwner,validateListing}=require("../middleware.js")
 const listingcontroller=require("../controllers/listings.js");
 const multer=require("multer");
-const upload=multer({dest:"uploads/"});
+const {storage}=require("../CloudConfig.js");
+const upload=multer({storage});
 router
     .route("/")
     //Index route
     .get(wrapAsync(listingcontroller.index))
-    //New page for creating new listing
-    // .post(validateListing,loggedin, wrapAsync(listingcontroller.createListing));
-// //Index route
-// router.get("/",wrapAsync(listingcontroller.index));
-    .post(upload.single("listing[image]"),(req,res)=>{
-        res.send(req.file);
-    });
+   // New page for creating new listing
+    .post(loggedin,upload.single("listing[image]"), wrapAsync(listingcontroller.createListing));
 //New route 
 router.get("/new",loggedin,listingcontroller.renderNewForm); 
 
@@ -28,7 +24,7 @@ router
     //Show Route
     .get(wrapAsync(listingcontroller.showListings))
     //Update Route
-    .put(loggedin,isOwner, validateListing, wrapAsync(listingcontroller.updateListing))
+    .put(loggedin,isOwner,upload.single("listing[image]"), validateListing, wrapAsync(listingcontroller.updateListing))
     //Delete Route
     .delete(loggedin,isOwner, wrapAsync(listingcontroller.destroyListing));
 
