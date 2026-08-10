@@ -18,7 +18,6 @@ router
 //New route 
 router.get("/new",loggedin,listingcontroller.renderNewForm); 
 
-
 router
     .route("/:id")
     //Show Route

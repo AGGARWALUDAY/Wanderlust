@@ -1,7 +1,6 @@
 const dns = require("dns");
 dns.setServers(["8.8.8.8"]);
 require('dotenv').config()
-console.log(process.env.SECRET);
 const express=require("express");
 const app=express();
 const mongoose=require("mongoose");
@@ -38,6 +37,7 @@ then(()=>{
 app.use(express.static(path.join(__dirname,"public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname,"views"));
+
 async function main() {
   await mongoose.connect(dbUrl);
 }
@@ -102,6 +102,9 @@ const validatereview=(req,res,next)=>{
 //     let registeredUser=await User.register(fakeUser,"helloworld");
 //     res.send(registeredUser);
 // });
+app.get("/",(req,res)=>{
+    res.redirect("/listings");
+})
 
 app.use("/listings",listingrouter);
 app.use("/listings/:id/reviews",reviewrouter);
