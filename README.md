@@ -11,11 +11,8 @@
 ### Home Page
 ![Home Page](./screenshots/Home_Page.png)
 
-### Listings Page
-![Listings Page](./screenshots/Listing_page.png)
-
-### Login Page
-![Login Page](./screenshots/Login_page.png)
+### ADD New Listing 
+![New Listing](./screenshots/New_lising.png)
 
 
 ## ✨ Features
